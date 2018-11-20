@@ -37,12 +37,12 @@ function sysCall_init()
     ss={simOMPL.createStateSpace('6d',simOMPL.StateSpaceType.pose3d,start_handle,{-3.0,-2.5,0},{3.2,2.2,3.8},1)}
     simOMPL.setStateSpace(t,ss)
     simOMPL.setAlgorithm(t,simOMPL.Algorithm.RRTConnect)
-    simOMPL.setCollisionPairs(t,{sim.getObjectHandle('boundary'),collection_handles})
+    simOMPL.setCollisionPairs(t,{sim.getObjectHandle('eDroneVisible'),collection_handles})
 
     --------------------Add your publisher and subscriber nodes here ---------------------
 
     path_pub=simROS.advertise('/vrep/waypoints', 'geometry_msgs/PoseArray')    -- Publish the computed path under the topic /vrep/waypoints
-    
+    whycon_sub = simROS.subscribe('/computepath', 'geometry_msgs/Vector3', 'compute_and_send_path')
 
 
 
@@ -108,7 +108,7 @@ function compute_and_send_path(task)
     local r
     local path
 
-    -- r,path=simOMPL.compute(,,,) -- Provide the correct arguments here.. Make sure you check the no of path points it actually computes
+    r,path=simOMPL.compute(t,10,-1,no_of_path_points_required)-- Provide the correct arguments here.. Make sure you check the no of path points it actually computes
 
     if(r == true) then
         visualizePath(path)
