@@ -21,6 +21,7 @@ function sysCall_init()
     end
     target_handle = sim.getObjectHandle('target')
     start_handle = sim.getObjectHandle('start')
+    compute_path_flag = false
     --Hint : Goal handles and other required handles
     ----------------------------------------------------------
 
@@ -102,7 +103,12 @@ function packdata(path)
     return sender
 end
 
-
+function getpose(handle,ref_handle)
+    position = sim.getObjectPosition(handle,ref_handle)
+    orientation = sim.getObjectQuaternion(handle,ref_handle)
+    pose = {position[1],position[2],position[3],orientation[1],orientation[2],orientation[3],orientation[4]}
+    return pose
+end
 --- This function is used to compute and publish the path to path_planninglpy
 function compute_and_send_path(task)
     local r
@@ -124,11 +130,21 @@ function sysCall_actuation()
     
     ---- Add your code to set start and goal state after getting present poses of the drone and the new goal when path_planning.py request you a path
     ---------------------------------------------------------------------------------------------------------------
-
-
-
-
-
+    if compute_path_flag == true then
+        -- Getting startpose
+        start_pose = getpose(start_handle,-1)
+        -- Getting the goalpose
+        goal_pose = getpose(goal_handle,-1)
+        -- Setting start state
+        simOMPL.setStartState(t,start_pose)
+        -- Setting goal state but the orientation is set same as that of startpose
+        simOMPL.setGoalState(t,{goal_pose[1],goal_pose[2],goal_pose[3],start_pose[4],start_pose[5],start_pose[6],start_pose[7]})
+        -- Computing path and publishing path points
+        status = compute_and_send_path(t)
+        if(status == true) then -- path computed
+            compute_path_flag = false
+        end
+    end 
 
 
 
