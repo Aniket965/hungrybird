@@ -20,6 +20,7 @@ function sysCall_init()
         table.insert(goals_handles,sim.getObjectHandle('goal_'..tostring(i)))
     end
     target_handle = sim.getObjectHandle('target')
+    start_handle = sim.getObjectHandle('start')
     --Hint : Goal handles and other required handles
     ----------------------------------------------------------
 
@@ -46,7 +47,7 @@ function sysCall_init()
     ---------------------------------------------------------------------------------------
 
 
-    -- scale_factor = {} -- Add the scale_factor you computed learned from the tutorial of whycon transformation
+    scale_factor = {7.5580137672097, 7.4015183578371, 17.702372189925} -- Add the scale_factor you computed learned from the tutorial of whycon transformation
     -- no_of_path_points_required = -- Add no of path points you want from one point to another
 
 end
@@ -143,4 +144,3 @@ end
 function sysCall_cleanup()
 
 end
-
