@@ -33,7 +33,11 @@ function sysCall_init()
     --Hint : Creating task, statespace creation, algorithm setting and setting collision pairs
     -- Carefull about the bounds and the collision pairs you set.
     --------------------------------------------------------------------------
-
+    t=simOMPL.createTask('t')
+    ss={simOMPL.createStateSpace('6d',simOMPL.StateSpaceType.pose3d,start_handle,{-3.0,-2.5,0},{3.2,2.2,3.8},1)}
+    simOMPL.setStateSpace(t,ss)
+    simOMPL.setAlgorithm(t,simOMPL.Algorithm.RRTConnect)
+    simOMPL.setCollisionPairs(t,{sim.getObjectHandle('boundary'),collection_handles})
 
     --------------------Add your publisher and subscriber nodes here ---------------------
 
@@ -47,8 +51,8 @@ function sysCall_init()
     ---------------------------------------------------------------------------------------
 
 
-    scale_factor = {7.5580137672097, 7.4015183578371, 17.702372189925} -- Add the scale_factor you computed learned from the tutorial of whycon transformation
-    -- no_of_path_points_required = -- Add no of path points you want from one point to another
+    scale_factor = {7.5580137672097, 7.4015183578371, -17.702372189925} -- Add the scale_factor you computed learned from the tutorial of whycon transformation
+    no_of_path_points_required = 50
 
 end
 
@@ -86,9 +90,9 @@ function packdata(path)
 
         -------------------Add x, y and z value after converting real_world to whycon_world using the computed scale_factor--------------------------------
 
-        -- pose.position.x = 
-        -- pose.position.y = 
-        -- pose.position.z = 
+        pose.position.x = (path[i]) * scale_factor[1]
+        pose.position.y = (path[i+1])* scale_factor[2]
+        pose.position.z = (path[i+2])* scale_factor[3] + 55.60
         sender.poses[math.floor(i/7) + 1] = pose
 
 
