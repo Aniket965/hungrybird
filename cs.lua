@@ -16,12 +16,15 @@ function sysCall_init()
     -----------Add other required handles here----------------
     no_of_goals = 2
     goals_handles = {}
+    i_handle = sim.getObjectHandle('initial_waypoint')
+    table.insert(goals_handles,i_handle)
     for i=1,no_of_goals do
         table.insert(goals_handles,sim.getObjectHandle('goal_'..tostring(i)))
     end
+    table.insert(goals_handles,i_handle)
     target_handle = sim.getObjectHandle('target')
-    start_handle = sim.getObjectHandle('start')
-    compute_path_flag = false
+    start_handle = sim.getObjectHandle('Start')
+    compute_path_flag = true
     --Hint : Goal handles and other required handles
     ----------------------------------------------------------
 
@@ -35,10 +38,10 @@ function sysCall_init()
     -- Carefull about the bounds and the collision pairs you set.
     --------------------------------------------------------------------------
     t=simOMPL.createTask('t')
-    ss={simOMPL.createStateSpace('6d',simOMPL.StateSpaceType.pose3d,start_handle,{-3.0,-2.5,0},{3.2,2.2,3.8},1)}
+    ss={simOMPL.createStateSpace('6d',simOMPL.StateSpaceType.pose3d,drone_handle,{-3.2,-2,0},{2.5,2,1.5},1)}
     simOMPL.setStateSpace(t,ss)
     simOMPL.setAlgorithm(t,simOMPL.Algorithm.RRTConnect)
-    simOMPL.setCollisionPairs(t,{sim.getObjectHandle('eDroneVisible'),collection_handles})
+    simOMPL.setCollisionPairs(t,{sim.getObjectHandle('eDrone_outer'),collection_handles})
 
     --------------------Add your publisher and subscriber nodes here ---------------------
 
@@ -52,8 +55,8 @@ function sysCall_init()
     ---------------------------------------------------------------------------------------
 
 
-    scale_factor = {7.5580137672097, 7.4015183578371, -17.702372189925} -- Add the scale_factor you computed learned from the tutorial of whycon transformation
-    no_of_path_points_required = 50
+    scale_factor = {-7.5580137672097, -7.515183578371, -17.702372189925} -- Add the scale_factor you computed learned from the tutorial of whycon transformation
+    no_of_path_points_required = 20
 
 end
 
@@ -91,8 +94,8 @@ function packdata(path)
 
         -------------------Add x, y and z value after converting real_world to whycon_world using the computed scale_factor--------------------------------
 
-        pose.position.x = (path[i]) * scale_factor[1]
-        pose.position.y = (path[i+1])* scale_factor[2]
+        pose.position.x = (path[i]) * scale_factor[1] - 0.02
+        pose.position.y = (path[i+1])* scale_factor[2] - 0.02
         pose.position.z = (path[i+2])* scale_factor[3] + 55.60
         sender.poses[math.floor(i/7) + 1] = pose
 
@@ -113,7 +116,7 @@ end
 function compute_and_send_path(task)
     local r
     local path
-
+    simOMPL.setup(t)
     r,path=simOMPL.compute(t,10,-1,no_of_path_points_required)-- Provide the correct arguments here.. Make sure you check the no of path points it actually computes
 
     if(r == true) then
@@ -132,9 +135,9 @@ function sysCall_actuation()
     ---------------------------------------------------------------------------------------------------------------
     if compute_path_flag == true then
         -- Getting startpose
-        start_pose = getpose(start_handle,-1)
+        start_pose = getpose(goals_handles[1],-1)
         -- Getting the goalpose
-        goal_pose = getpose(goal_handle,-1)
+        goal_pose = getpose(goals_handles[2],-1)
         -- Setting start state
         simOMPL.setStartState(t,start_pose)
         -- Setting goal state but the orientation is set same as that of startpose
