@@ -1,6 +1,6 @@
 function sysCall_init()
     -- This child script contains computing path and publishing it into the path_planning.py for waypoint navigation.
-    
+
 
     -- Declaring required handles
     drone_handle = sim.getObjectHandle('eDroneBase')
@@ -24,7 +24,7 @@ function sysCall_init()
     table.insert(goals_handles,i_handle)
     target_handle = sim.getObjectHandle('target')
     start_handle = sim.getObjectHandle('Start')
-    compute_path_flag = true
+    compute_path_flag = false
     --Hint : Goal handles and other required handles
     ----------------------------------------------------------
 
@@ -38,7 +38,7 @@ function sysCall_init()
     -- Carefull about the bounds and the collision pairs you set.
     --------------------------------------------------------------------------
     t=simOMPL.createTask('t')
-    ss={simOMPL.createStateSpace('6d',simOMPL.StateSpaceType.pose3d,drone_handle,{-3.2,-2,0},{2.5,2,1.5},1)}
+    ss={simOMPL.createStateSpace('6d',simOMPL.StateSpaceType.pose3d,drone_handle,{-2.5,-2,0},{2.5,2,1.5},1)}
     simOMPL.setStateSpace(t,ss)
     simOMPL.setAlgorithm(t,simOMPL.Algorithm.RRTConnect)
     simOMPL.setCollisionPairs(t,{sim.getObjectHandle('eDrone_outer'),collection_handles})
@@ -46,7 +46,7 @@ function sysCall_init()
     --------------------Add your publisher and subscriber nodes here ---------------------
 
     path_pub=simROS.advertise('/vrep/waypoints', 'geometry_msgs/PoseArray')    -- Publish the computed path under the topic /vrep/waypoints
-    whycon_sub = simROS.subscribe('/computepath', 'geometry_msgs/Vector3', 'compute_and_send_path')
+    whycon_sub = simROS.subscribe('/computepath', 'std_msgs/Bool', 'computecallback')
 
 
 
@@ -83,7 +83,7 @@ end
 function packdata(path)
 
     local sender = {header = {}, poses = {}}
-    
+
     sender['header']={seq=123, stamp=simROS.getTime(), frame_id="drone"}
     sender['poses'] = {}
 
@@ -116,21 +116,28 @@ end
 function compute_and_send_path(task)
     local r
     local path
-    simOMPL.setup(t)
+
     r,path=simOMPL.compute(t,10,-1,no_of_path_points_required)-- Provide the correct arguments here.. Make sure you check the no of path points it actually computes
 
     if(r == true) then
         visualizePath(path)
         message = packdata(path)  
         simROS.publish(path_pub,message)
+
         -- Provide slots for debug to cross check the message or path points you recieve after computing
     end
     return r
 end
+--funtion for callback
 
-
+function computecallback(msg)
+    if(msg.data==true) then
+        print('called')
+        compute_path_flag = true
+    end
+end
 function sysCall_actuation()
-    
+
     ---- Add your code to set start and goal state after getting present poses of the drone and the new goal when path_planning.py request you a path
     ---------------------------------------------------------------------------------------------------------------
     if compute_path_flag == true then
@@ -146,6 +153,7 @@ function sysCall_actuation()
         status = compute_and_send_path(t)
         if(status == true) then -- path computed
             compute_path_flag = false
+            table.remove(goals_handles,1)
         end
     end 
 
