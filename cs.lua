@@ -56,7 +56,7 @@ function sysCall_init()
 
 
     scale_factor = {-7.5580137672097, -7.515183578371, -17.702372189925} -- Add the scale_factor you computed learned from the tutorial of whycon transformation
-    no_of_path_points_required = 20
+    no_of_path_points_required = 55
 
 end
 
@@ -132,8 +132,9 @@ end
 
 function computecallback(msg)
     if(msg.data==true) then
-        print('called')
-        compute_path_flag = true
+       if #goals_handles >= 2 then
+            compute_path_flag = true
+        end     
     end
 end
 function sysCall_actuation()
