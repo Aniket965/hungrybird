@@ -36,15 +36,17 @@ function aruco_callback(msg)
     -- id 2 is for cashew tree
     pose = msg.markers[1].pose.pose.orientation
     sim.setObjectQuaternion(c_tree_ori_handle,-1,{pose.x,pose.y,-pose.z,-pose.w})
-	table_ =sim.getObjectQuaternion(c_tree_ori_handle,-1)
-    print()
+	
+
 
 end
 
 function whycon_callback(msg)
     -- Get the position of the whycon marker and set the position of the food tree and non-food tree using Position_hoop dummy
     -- Hint : Go through the regular API - sim.setObjectPosition
-
+    print()
+    pos = msg.poses[1].position
+    sim.setObjectPosition(c_tree_pos_handle,-1,{pos.x/4,-pos.y/4,0.5}) 
 end
 
 function key_callback(msg)
