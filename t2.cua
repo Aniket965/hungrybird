@@ -44,12 +44,27 @@ end
 function whycon_callback(msg)
     -- Get the position of the whycon marker and set the position of the food tree and non-food tree using Position_hoop dummy
     -- Hint : Go through the regular API - sim.setObjectPosition
-    print()
     pos = msg.poses[1].position
     sim.setObjectPosition(c_tree_pos_handle,-1,{pos.x/4,-pos.y/4,0.5}) 
 end
 
 function key_callback(msg)
     -- Read key input to set or unset position and orientation of food and non-food trees
+    if msg.data == 70 then
+        -- set orientation of current tree
+    elseif msg.data == 60 then
+        -- set position of current tree
+    elseif msg.data == 0 then
+        -- reset current tree orientation to live mode
+    elseif msg.data == 10 then
+        -- reset current tree  position to live mode
+    elseif msg.data == 20 then
+        -- move to next tree
+    else 
+    	print("not a command for this script")
+    end
+    
+
+
 
 end
