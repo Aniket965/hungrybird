@@ -35,7 +35,7 @@ function aruco_callback(msg)
     -- Get the orientation(quaternion) of the ArUco marker and set the orientation of the hoop using Orientation_hoop dummy
     -- Hint : Go through the regular API - sim.setObjectQuaternion
     -- id 2 is for cashew tree
-    if is_current_orientation_set == true then
+    if is_current_orientation_set == false then
         pose = msg.markers[1].pose.pose.orientation
         sim.setObjectQuaternion(orientation_handles[1],-1,{pose.x,pose.y,-pose.z,-pose.w})
 	end
@@ -46,7 +46,7 @@ end
 function whycon_callback(msg)
     -- Get the position of the whycon marker and set the position of the food tree and non-food tree using Position_hoop dummy
     -- Hint : Go through the regular API - sim.setObjectPosition
-    if is_current_position_set == true then
+    if is_current_position_set == false then
         pos = msg.poses[1].position
         sim.setObjectPosition(position_handles[1],-1,{pos.x/4,-pos.y/4,0.5}) 
     end
@@ -57,15 +57,19 @@ function key_callback(msg)
     if msg.data == 70 then
         -- set orientation of current tree
         is_current_orientation_set = true
+        print('current orientation set')
     elseif msg.data == 60 then
         -- set position of current tree
         is_current_position_set = true
+        print('current position set')
     elseif msg.data == 0 then
-        -- reset current tree orientation to live mode
+        -- unset current tree orientation 
         is_current_orientation_set = false
+        print('unset current orientation')
     elseif msg.data == 10 then
-        -- reset current tree  position to live mode
+        -- unset current tree  position 
         is_current_position_set = false
+        print('unset current position')
     elseif msg.data == 20 then
         -- move to next tree
     else
