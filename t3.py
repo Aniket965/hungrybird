@@ -19,6 +19,7 @@ CODE MODULARITY AND TECHNIQUES MENTIONED LIKE THIS WILL HELP YOU GAINING MORE MA
 
 # Importing the required libraries
 
+from plutodrone.srv import *
 from plutodrone.msg import *
 from geometry_msgs.msg import PoseArray
 from std_msgs.msg import Int16
@@ -54,13 +55,15 @@ class Edrone():
 		self.cmd.rcAUX3 = 1500
 			
 		# self.cmd.plutoIndex = 0
-
+		self.akp = 20
+		self.aki = 0
+		self.akd = 0
 
 		#initial setting of Kp, Kd and ki for [pitch, roll, throttle, yaw]. eg: self.Kp[2] corresponds to Kp value in throttle axis
 		#after tuning and computing corresponding PID parameters, change the parameters 24,320
-		self.Kp = [0,0.0,24,0]
-		self.Ki = [0.0,0.0,0,0]
-		self.Kd = [0,0,4,0]
+		self.Kp = [0,0.0,0,0]
+		self.Ki = [0.0,0.0,0.0,0]
+		self.Kd = [0,0,0,0]
 
 
 		# self.Kp = [8.4,7.5,24.0,6.4]
@@ -86,7 +89,7 @@ class Edrone():
 		#----------------------------------------------------------------------------------------------------------
 
 		# This is the sample time in which you need to run pid. Choose any time which you seem fit. Remember the stimulation step time is 50 ms
-		self.sample_time = 0.100 # in seconds
+		self.sample_time = 0.0100 # in seconds
 
 
 
@@ -110,8 +113,9 @@ class Edrone():
 		rospy.Subscriber('/pid_tuning_roll',PidTune,self.roll_set_pid)
 		rospy.Subscriber('/pid_tuning_pitch',PidTune,self.pitch_set_pid)
 		rospy.Subscriber('/pid_tuning_yaw',PidTune,self.yaw_set_pid)
-		rospy.Subscriber('/drone_yaw', Float64, self.yaw_callback)
-
+		# rospy.Subscriber('/drone_yaw', Float64, self.yaw_callback)
+		self.data =  rospy.Service('PlutoService', PlutoPilot, self.yaw_callback)
+		rospy.Subscriber('/input_key',Int16,self.input)
 
 
 
@@ -127,7 +131,17 @@ class Edrone():
 		self.command_pub.publish(self.cmd)
 		rospy.sleep(1)
 
-
+	def input(self,data):
+		print(data)
+		if data == 70:
+			self.akp += 1
+			print(self.akp)
+		elif data == 60:
+			self.akp -= 1
+		elif data == 10:
+			self.disarm()
+		elif data == 20:
+			self.arm()
 	# Arming condition of the drone : Best practise is to disarm and then arm the drone.
 	def arm(self):
 
@@ -151,7 +165,7 @@ class Edrone():
 		#--------------------Set the remaining co-ordinates of the drone from msg----------------------------------------------
 		p = msg.poses[0]
 		self.drone_position[1:3] = [p.position.y,p.position.z]
-		print(p.position.z)
+		print(p.position.z,self.Kp[3],self.Ki[3],self.Kd[3])
 		#---------------------------------------------------------------------------------------------------------------
 
 
@@ -161,14 +175,15 @@ class Edrone():
 	# Callback function for /pid_tuning_altitude
 	# This function gets executed each time when /tune_pid publishes /pid_tuning_altitude
 	def altitude_set_pid(self,alt):
-		self.Kp[2] = alt.Kp 
-		self.Ki[2] = alt.Ki
-		self.Kd[2] = alt.Kd 
+		self.Kp[2] = alt.Kp * 0.1 
+		self.Ki[2] = alt.Ki * 0.001
+		self.Kd[2] = alt.Kd * 1
 
 	#----------------------------Define callback function like altitide_set_pid to tune pitch, roll and yaw as well--------------
 	def pitch_set_pid(self,pitch):
+		print(pitch)
 		self.Kp[0] = pitch.Kp *0.1
-		self.Ki[0] = pitch.Ki
+		self.Ki[0] = pitch.Ki * 0.001	
 		self.Kd[0] = pitch.Kd * 1
 
 	def roll_set_pid(self,roll):
@@ -177,12 +192,18 @@ class Edrone():
 		self.Kd[1] = roll.Kd * 1
 	def yaw_set_pid(self,yaw):
 		self.Kp[3] = yaw.Kp * -0.1
-		self.Ki[3] = yaw.Ki * -0.01
+		self.Ki[3] = yaw.Ki * 0.01
 		self.Kd[3] = yaw.Kd * -1
 
-	def yaw_callback(self, yaw):
-		self.drone_position[3] = yaw.data
-	
+	def yaw_callback(self, req):
+		print("yo")
+		self.drone_position[3] = req.yaw
+		print(req.yaw)
+		# rospy.sleep(.1)
+		rospy.sleep(0.1)
+		return PlutoPilotResponse(rcAUX2 =1500)
+		
+		
 
 
 	#----------------------------------------------------------------------------------------------------------------------
@@ -200,6 +221,7 @@ class Edrone():
 	#	7. Update previous errors.eg: self.prev_error[1] = error[1] where index 1 corresponds to that of pitch (eg)
 	#	8. Add error_sum
 		# 1
+
 		errors = [dp - setp for dp,setp in zip(self.drone_position,self.setpoint)]
 		self.pub_pitch_err.publish(errors[0])
 		self.pub_roll_err.publish(errors[1])
