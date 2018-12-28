@@ -61,9 +61,9 @@ class Edrone():
 
 		#initial setting of Kp, Kd and ki for [pitch, roll, throttle, yaw]. eg: self.Kp[2] corresponds to Kp value in throttle axis
 		#after tuning and computing corresponding PID parameters, change the parameters 24,320
-		self.Kp = [0,0.0,0,0]
+		self.Kp = [0,0.0,60,18.2]
 		self.Ki = [0.0,0.0,0.0,0]
-		self.Kd = [0,0,0,0]
+		self.Kd = [0,0,3,214]
 
 
 		# self.Kp = [8.4,7.5,24.0,6.4]
@@ -191,15 +191,16 @@ class Edrone():
 		self.Ki[1] = roll.Ki 
 		self.Kd[1] = roll.Kd * 1
 	def yaw_set_pid(self,yaw):
-		self.Kp[3] = yaw.Kp * -0.1
-		self.Ki[3] = yaw.Ki * 0.01
-		self.Kd[3] = yaw.Kd * -1
+		self.Kp[3] = yaw.Kp * 0.1
+		self.Ki[3] = yaw.Ki * 0.001
+		self.Kd[3] = yaw.Kd * 1
+		print(self.Kp[3],self.Ki[3],self.Kd[3])
 
 	def yaw_callback(self, req):
 		print("yo")
-		self.drone_position[3] = req.yaw
-		print(req.yaw)
-		# rospy.sleep(.1)
+		self.drone_position[3] = -req.yaw + 180
+		print(-req.yaw + 180)
+		
 		rospy.sleep(0.1)
 		return PlutoPilotResponse(rcAUX2 =1500)
 		
