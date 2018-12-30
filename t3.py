@@ -41,7 +41,7 @@ class Edrone():
 		self.drone_position = [0.0,0.0,0.0,0.0]	
 
 		# [x_setpoint, y_setpoint, z_setpoint, yaw_value_setpoint]
-		self.setpoint = [0, 0, 25.0	, 0] # whycon marker at the position of the dummy given in the scene. Make the whycon marker associated with position_to_hold dummy renderable and make changes accordingly
+		self.setpoint = [0, 0, 20.0	, 0] # whycon marker at the position of the dummy given in the scene. Make the whycon marker associated with position_to_hold dummy renderable and make changes accordingly
 
 
 		#Declaring a cmd of message type PlutoMsg and initializing values
@@ -60,10 +60,10 @@ class Edrone():
 		self.akd = 0
 
 		#initial setting of Kp, Kd and ki for [pitch, roll, throttle, yaw]. eg: self.Kp[2] corresponds to Kp value in throttle axis
-		#after tuning and computing corresponding PID parameters, change the parameters 24,320
-		self.Kp = [0,0.0,60,18.2]
-		self.Ki = [0.0,0.0,0.0,0]
-		self.Kd = [0,0,3,214]
+		#after tuning and computing corresponding PID parameters, change the parameters 18.2,214
+		self.Kp = [13,13,62,0]
+		self.Ki = [0.0139, 0.0139,0.0,0]
+		self.Kd = [1350,1350,898,0]
 
 
 		# self.Kp = [8.4,7.5,24.0,6.4]
@@ -165,7 +165,7 @@ class Edrone():
 		#--------------------Set the remaining co-ordinates of the drone from msg----------------------------------------------
 		p = msg.poses[0]
 		self.drone_position[1:3] = [p.position.y,p.position.z]
-		print(p.position.z,self.Kp[3],self.Ki[3],self.Kd[3])
+		print(p.position.z,self.Kp[0],self.Ki[0],self.Kd[0])
 		#---------------------------------------------------------------------------------------------------------------
 
 
@@ -176,14 +176,14 @@ class Edrone():
 	# This function gets executed each time when /tune_pid publishes /pid_tuning_altitude
 	def altitude_set_pid(self,alt):
 		self.Kp[2] = alt.Kp * 0.1 
-		self.Ki[2] = alt.Ki * 0.001
+		self.Ki[2] = alt.Ki * -0.001
 		self.Kd[2] = alt.Kd * 1
 
 	#----------------------------Define callback function like altitide_set_pid to tune pitch, roll and yaw as well--------------
 	def pitch_set_pid(self,pitch):
-		print(pitch)
+		# print(pitch)
 		self.Kp[0] = pitch.Kp *0.1
-		self.Ki[0] = pitch.Ki * 0.001	
+		self.Ki[0] = pitch.Ki * 0.0001	
 		self.Kd[0] = pitch.Kd * 1
 
 	def roll_set_pid(self,roll):
@@ -194,13 +194,10 @@ class Edrone():
 		self.Kp[3] = yaw.Kp * 0.1
 		self.Ki[3] = yaw.Ki * 0.001
 		self.Kd[3] = yaw.Kd * 1
-		print(self.Kp[3],self.Ki[3],self.Kd[3])
+		# print(self.Kp[3],self.Ki[3],self.Kd[3])
 
 	def yaw_callback(self, req):
-		print("yo")
-		self.drone_position[3] = -req.yaw + 180
-		print(-req.yaw + 180)
-		
+		self.drone_position[3] = -req.yaw + 180	
 		rospy.sleep(0.1)
 		return PlutoPilotResponse(rcAUX2 =1500)
 		
