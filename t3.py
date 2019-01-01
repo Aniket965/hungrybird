@@ -60,10 +60,10 @@ class Edrone():
 		self.akd = 0
 
 		#initial setting of Kp, Kd and ki for [pitch, roll, throttle, yaw]. eg: self.Kp[2] corresponds to Kp value in throttle axis
-		#after tuning and computing corresponding PID parameters, change the parameters 18.2,214
-		self.Kp = [13,13,62,0]
-		self.Ki = [0.0139, 0.0139,0.0,0]
-		self.Kd = [1350,1350,898,0]
+		#after tuning 15,1300 and computing corresponding PID parameters, change the parameters 18.2,214
+		self.Kp = [9.7,9.7,50,0]
+		self.Ki = [0,0, 0.0,0]
+		self.Kd = [1239,1239,4,0]
 
 
 		# self.Kp = [8.4,7.5,24.0,6.4]
@@ -89,7 +89,7 @@ class Edrone():
 		#----------------------------------------------------------------------------------------------------------
 
 		# This is the sample time in which you need to run pid. Choose any time which you seem fit. Remember the stimulation step time is 50 ms
-		self.sample_time = 0.0100 # in seconds
+		self.sample_time = 0.01 # in seconds
 
 
 
@@ -260,7 +260,7 @@ class Edrone():
 if __name__ == '__main__':
 
 	e_drone = Edrone()
-
+	time.sleep(2)
 	while not rospy.is_shutdown():
 		e_drone.pid()
 	e_drone.disarm()	
