@@ -23,11 +23,11 @@ import time
 
 class Edrone():
     """
-* ClassName: Edrone
-* Logic: this class runs a ROS-node of name drone_control which holds the 
-* position of e-Drone on the given dummy
-* Example Intialization: e_drone = Edrone()
-"""
+    * ClassName: Edrone
+    * Logic: this class runs a ROS-node of name drone_control which holds the 
+    * position of e-Drone on the given dummy
+    * Example Intialization: e_drone = Edrone()
+    """
 
     def __init__(self):
 
