@@ -54,16 +54,16 @@ class Edrone():
 		self.cmd.rcAUX2 = 1500
 		self.cmd.rcAUX3 = 1500
 			
-		# self.cmd.plutoIndex = 0
+		self.cmd.plutoIndex = 0
 		self.akp = 20
 		self.aki = 0
 		self.akd = 0
 
 		#initial setting of Kp, Kd and ki for [pitch, roll, throttle, yaw]. eg: self.Kp[2] corresponds to Kp value in throttle axis
 		#after tuning 15,1300 and computing corresponding PID parameters, change the parameters 18.2,214
-		self.Kp = [9.7,9.7,50,0]
+		self.Kp = [9.7,7,50,18.2]
 		self.Ki = [0,0, 0.0,0]
-		self.Kd = [1239,1239,4,0]
+		self.Kd = [1239,919,4,214]
 
 
 		# self.Kp = [8.4,7.5,24.0,6.4]
@@ -113,8 +113,8 @@ class Edrone():
 		rospy.Subscriber('/pid_tuning_roll',PidTune,self.roll_set_pid)
 		rospy.Subscriber('/pid_tuning_pitch',PidTune,self.pitch_set_pid)
 		rospy.Subscriber('/pid_tuning_yaw',PidTune,self.yaw_set_pid)
-		# rospy.Subscriber('/drone_yaw', Float64, self.yaw_callback)
-		self.data =  rospy.Service('PlutoService', PlutoPilot, self.yaw_callback)
+		rospy.Subscriber('/drone_yaw', Int16, self.yaw_callback)
+		# self.data =  rospy.Service('PlutoService', PlutoPilot, self.yaw_callback)
 		rospy.Subscriber('/input_key',Int16,self.input)
 
 
@@ -165,7 +165,7 @@ class Edrone():
 		#--------------------Set the remaining co-ordinates of the drone from msg----------------------------------------------
 		p = msg.poses[0]
 		self.drone_position[1:3] = [p.position.y,p.position.z]
-		print(p.position.z,self.Kp[0],self.Ki[0],self.Kd[0])
+		print(p.position.z,self.Kp[1],self.Ki[1],self.Kd[1])
 		#---------------------------------------------------------------------------------------------------------------
 
 
@@ -188,7 +188,7 @@ class Edrone():
 
 	def roll_set_pid(self,roll):
 		self.Kp[1] = roll.Kp * 0.1
-		self.Ki[1] = roll.Ki 
+		self.Ki[1] = roll.Ki * 0.0001
 		self.Kd[1] = roll.Kd * 1
 	def yaw_set_pid(self,yaw):
 		self.Kp[3] = yaw.Kp * 0.1
@@ -196,11 +196,8 @@ class Edrone():
 		self.Kd[3] = yaw.Kd * 1
 		# print(self.Kp[3],self.Ki[3],self.Kd[3])
 
-	def yaw_callback(self, req):
-		self.drone_position[3] = -req.yaw + 180	
-		rospy.sleep(0.1)
-		return PlutoPilotResponse(rcAUX2 =1500)
-		
+	def yaw_callback(self, yaw):
+		self.drone_position[3] = yaw.data
 		
 
 
